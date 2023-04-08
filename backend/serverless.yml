@@ -1,17 +1,18 @@
 # TODO: Change the name of the org 
-org: sudkul
-app: serverless-todo-app
-service: serverless-todo-app
+org: newtonombese
+app: serverless-newton
+service: serverless-newton
 
 plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
-  - serverless-plugin-tracing
+  - serverless-reqvalidator-plugin
+  - serverless-aws-documentation
 
 provider:
   name: aws
   runtime: nodejs12.x
-  lambdaHashingVersion: '20201221'
+  # lambdaHashingVersion: '20201221'
 
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
@@ -23,23 +24,61 @@ provider:
   # Use these variables in the functions and resouorces section below. For example, 
   # ${self:provider.environment.ATTACHMENT_S3_BUCKET}
   environment:
-    TODOS_TABLE: Todos-${self:provider.stage}
-    TODOS_CREATED_AT_INDEX: CreatedAtIndex
-    ATTACHMENT_S3_BUCKET: serverless-c4-todo-images-${self:provider.stage}
-    SIGNED_URL_EXPIRATION: 300
+    PROJECT_NAME: newto-serverless
+    TODOS_TABLE: newto-serverless-${self:provider.stage}
+    # TODOS_CREATED_AT_INDEX: CreatedAtIndex
+    ATTACHMENT_S3_BUCKET: newto-serverless-${self:provider.stage}
+    # SIGNED_URL_EXPIRATION: 300
 
-  logs:
-    # Enable API Gateway logs
-    restApi: true
+custom:
+  documentation:
+    api:
+      info:
+        version: '1.0.0'
+        title: serverless-api
+        description: serverless-api
+    models:
+      - name: CreateTodoRequest
+        contentType: "application/json"
+        schema:
+          required:
+            - name
+            - dueDate
+          properties:
+            name:
+              minLength: 1
+              type: string
+            dueDate:
+              type: string
+      - name: UpdateTodoRequest
+        contentType: "application/json"
+        schema:
+          required:
+            - name
+            - dueDate
+            - done
+          properties:
+            name:
+              minLength: 1
+              type: string
+            dueDate:
+              type: string
+            done:
+              type: boolean
+   
 
-  iam:
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - xray:PutTelemetryRecords
-            - xray:PutTraceSegments
-          Resource: "*"
+  # logs:
+  #   # Enable API Gateway logs
+  #   restApi: true
+
+  # iam:
+  #   role:
+  #     statements:
+  #       - Effect: Allow
+  #         Action:
+  #           - xray:PutTelemetryRecords
+  #           - xray:PutTraceSegments
+  #         Resource: "*"
 
 
 functions:
@@ -57,6 +96,17 @@ functions:
           path: todos
           cors: true
           authorizer: Auth
+    iamRoleStatementsName: ${self:provider.environment.PROJECT_NAME}-get-todo-role-${self:provider.stage}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+        Resource: 
+          - '*'
 
   # TODO: Configure this function - 
   # Provide iamRoleStatements property. Decide the Actions and AWS Resource. 
