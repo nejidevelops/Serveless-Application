@@ -24,11 +24,9 @@ provider:
   # Use these variables in the functions and resouorces section below. For example, 
   # ${self:provider.environment.ATTACHMENT_S3_BUCKET}
   environment:
-    PROJECT_NAME: newto-serverless
+    PROJECT_NAME: newto-serveless
     TODOS_TABLE: newto-serverless-${self:provider.stage}
-    # TODOS_CREATED_AT_INDEX: CreatedAtIndex
-    ATTACHMENT_S3_BUCKET: newto-serverless-${self:provider.stage}
-    # SIGNED_URL_EXPIRATION: 300
+    S3_BUCKET_NAME: newto-serverless-${self:provider.stage}
 
 custom:
   documentation:
